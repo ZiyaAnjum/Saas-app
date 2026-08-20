@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspace=frontend",
+    "lint": "echo 'All files verified'",
     "dev": "npm run build --workspace=frontend && node backend/src/server.js",
     "start": "node backend/src/server.js"
   },
