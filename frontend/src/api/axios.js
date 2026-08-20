@@ -1,8 +1,15 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-  if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
+  // Vite environment variables
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+    if (import.meta.env.REACT_APP_API_URL) return import.meta.env.REACT_APP_API_URL;
+  }
+  // Node / CRA / polyfilled process.env
+  if (typeof process !== 'undefined' && process.env) {
+    if (process.env.VITE_API_URL) return process.env.VITE_API_URL;
+    if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
   }
   return '/api';
 };
