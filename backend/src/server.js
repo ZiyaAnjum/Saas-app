@@ -22,11 +22,56 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'SaaS Subscription Backend is running' });
 });
 
-// API Routes
+// API Routes (namespaced)
 app.use('/api/auth', authRoutes);
 app.use('/api/plans', planRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/user', userRoutes);
+
+// Direct / exact API Route Aliases (both /api/* and root /*)
+const { signup, login } = require('./controllers/authController');
+const { getPlans } = require('./controllers/planController');
+const { subscribe, upgradePlan, cancelSubscription } = require('./controllers/subscriptionController');
+const { getProfile, getDashboard, getPremiumContent } = require('./controllers/userController');
+const { protect } = require('./middleware/auth');
+const { requirePlan } = require('./middleware/roleGuard');
+
+// Exact route implementations for /api/...
+app.post('/api/signup', signup);
+app.post('/api/login', login);
+app.post('/api/subscribe', protect, subscribe);
+app.put('/api/upgrade-plan', protect, upgradePlan);
+app.post('/api/cancel-subscription', protect, cancelSubscription);
+app.get('/api/profile', protect, getProfile);
+app.get('/api/dashboard', protect, getDashboard);
+app.get('/api/premium-content', protect, requirePlan(['premium']), getPremiumContent);
+
+// Exact top-level routes (POST, PUT are always API; GET checks for API / Auth headers)
+app.post('/signup', signup);
+app.post('/login', login);
+app.post('/subscribe', protect, subscribe);
+app.put('/upgrade-plan', protect, upgradePlan);
+app.post('/cancel-subscription', protect, cancelSubscription);
+
+// Helper for top-level GET routes to distinguish API calls from SPA page loads
+const handleApiOrSpa = (apiHandler) => (req, res, next) => {
+  const isApiRequest =
+    req.xhr ||
+    req.headers.authorization ||
+    req.headers['content-type'] === 'application/json' ||
+    (req.headers.accept && req.headers.accept.includes('application/json') && !req.headers.accept.includes('text/html'));
+
+  if (isApiRequest) {
+    return apiHandler(req, res, next);
+  }
+  next();
+};
+
+app.get('/plans', handleApiOrSpa(getPlans));
+app.get('/profile', handleApiOrSpa((req, res, next) => protect(req, res, () => getProfile(req, res))));
+app.get('/dashboard', handleApiOrSpa((req, res, next) => protect(req, res, () => getDashboard(req, res))));
+app.get('/premium-content', handleApiOrSpa((req, res, next) => protect(req, res, () => requirePlan(['premium'])(req, res, () => getPremiumContent(req, res)))));
+
 
 // Database offline / mongoose error fallback middleware
 app.use((err, req, res, next) => {

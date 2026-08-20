@@ -11,11 +11,19 @@ export default function Plans() {
   const { user } = useAuth();
 
   useEffect(() => {
-    api.get('/plans').then(({ data }) => setPlans(data.plans));
-    if (user) {
-      api.get('/subscriptions/me').then(({ data }) => {
-        if (data.subscription) setCurrentPlanId(data.subscription.plan_id._id);
-      });
+    api.get('/plans')
+      .then(({ data }) => setPlans(data.plans || []))
+      .catch((err) => console.warn('Could not load plans:', err?.message));
+
+    const token = localStorage.getItem('token');
+    if (user && token) {
+      api.get('/subscriptions/me')
+        .then(({ data }) => {
+          if (data && data.subscription && data.subscription.plan_id) {
+            setCurrentPlanId(data.subscription.plan_id._id);
+          }
+        })
+        .catch((err) => console.warn('Subscription fetch notice:', err?.message));
     }
   }, [user]);
 

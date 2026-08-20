@@ -6,7 +6,9 @@ export default function Profile() {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    api.get('/user/profile').then(({ data }) => setProfile(data.user));
+    api.get('/user/profile')
+      .then(({ data }) => setProfile(data.user))
+      .catch((err) => console.warn('Profile fetch notice:', err?.message));
   }, []);
 
   if (!profile) return <p className="dashboard-page">Loading...</p>;

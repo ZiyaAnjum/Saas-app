@@ -2,11 +2,15 @@ const Subscription = require('../models/Subscription');
 const Plan = require('../models/Plan');
 const User = require('../models/User');
 
-// POST /api/subscriptions/subscribe
+// POST /api/subscriptions/subscribe or POST /api/subscribe or POST /subscribe
 exports.subscribe = async (req, res) => {
   try {
-    const { planId } = req.body;
+    const planId = req.body.planId || req.body.plan_id;
     const userId = req.user._id;
+
+    if (!planId) {
+      return res.status(400).json({ message: 'planId (or plan_id) is required' });
+    }
 
     const plan = await Plan.findById(planId);
     if (!plan) return res.status(404).json({ message: 'Plan not found' });
@@ -32,11 +36,15 @@ exports.subscribe = async (req, res) => {
   }
 };
 
-// PUT /api/subscriptions/upgrade-plan
+// PUT /api/subscriptions/upgrade-plan or PUT /api/upgrade-plan or PUT /upgrade-plan
 exports.upgradePlan = async (req, res) => {
   try {
-    const { planId } = req.body;
+    const planId = req.body.planId || req.body.plan_id;
     const userId = req.user._id;
+
+    if (!planId) {
+      return res.status(400).json({ message: 'planId (or plan_id) is required' });
+    }
 
     const newPlan = await Plan.findById(planId);
     if (!newPlan) return res.status(404).json({ message: 'Plan not found' });

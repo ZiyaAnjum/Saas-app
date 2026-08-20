@@ -8,8 +8,16 @@ export default function Dashboard() {
   const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
-    api.get('/user/dashboard').then(({ data }) => setDashboard(data));
-    api.get('/subscriptions/me').then(({ data }) => setSubscription(data.subscription));
+    api.get('/user/dashboard')
+      .then(({ data }) => setDashboard(data))
+      .catch((err) => {
+        console.warn('Dashboard fetch notice:', err?.response?.data?.message || err.message);
+      });
+    api.get('/subscriptions/me')
+      .then(({ data }) => setSubscription(data?.subscription || null))
+      .catch((err) => {
+        console.warn('Subscription fetch notice:', err?.response?.data?.message || err.message);
+      });
   }, []);
 
   const handleCancel = async () => {
