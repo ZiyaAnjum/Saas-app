@@ -34,6 +34,9 @@ const UserProxy = {
     if (query && query.email) {
       return memoryStore.findUserByEmail(query.email);
     }
+    if (query && (query._id || query.id)) {
+      return memoryStore.findUserById(query._id || query.id);
+    }
     return Promise.resolve(null);
   },
   findById: function (id) {

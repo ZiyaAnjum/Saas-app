@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcryptjs');
 
 const defaultPlans = [
@@ -35,9 +37,42 @@ const defaultPlans = [
 
 class MemoryStore {
   constructor() {
+    this.filePath = path.join(__dirname, '../../data/store.json');
     this.plans = [...defaultPlans];
     this.users = [];
     this.subscriptions = [];
+    this.loadFromDisk();
+  }
+
+  loadFromDisk() {
+    try {
+      if (fs.existsSync(this.filePath)) {
+        const raw = fs.readFileSync(this.filePath, 'utf8');
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.users)) this.users = data.users;
+        if (Array.isArray(data.subscriptions)) this.subscriptions = data.subscriptions;
+        if (Array.isArray(data.plans) && data.plans.length > 0) this.plans = data.plans;
+      }
+    } catch (err) {
+      console.warn('[DataStore] Could not load persisted data, starting fresh:', err.message);
+    }
+  }
+
+  saveToDisk() {
+    try {
+      const dir = path.dirname(this.filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      const data = {
+        users: this.users,
+        subscriptions: this.subscriptions,
+        plans: this.plans,
+      };
+      fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (err) {
+      console.warn('[DataStore] Could not save to disk:', err.message);
+    }
   }
 
   // --- Plan Methods ---
@@ -66,11 +101,13 @@ class MemoryStore {
       updatedAt: new Date(),
     };
     this.plans.push(newPlan);
+    this.saveToDisk();
     return { ...newPlan };
   }
 
   async deleteManyPlans() {
     this.plans = [];
+    this.saveToDisk();
     return { deletedCount: 0 };
   }
 
@@ -83,6 +120,7 @@ class MemoryStore {
         updatedAt: new Date(),
       });
     }
+    this.saveToDisk();
     return this.plans;
   }
 
@@ -177,6 +215,7 @@ class MemoryStore {
       updated_at: new Date(),
     };
     this.users.push(newUser);
+    this.saveToDisk();
     return {
       _id: newUser._id,
       name: newUser.name,
@@ -193,6 +232,7 @@ class MemoryStore {
       user.current_plan = update.current_plan;
     }
     user.updated_at = new Date();
+    this.saveToDisk();
     return { ...user };
   }
 
@@ -211,6 +251,7 @@ class MemoryStore {
       return p;
     }
 
+    const self = this;
     const createSubInstance = (s) => ({
       _id: s._id,
       user_id: s.user_id,
@@ -221,6 +262,7 @@ class MemoryStore {
       save: async function () {
         s.status = this.status;
         s.end_date = this.end_date;
+        self.saveToDisk();
         return this;
       },
     });
@@ -250,6 +292,9 @@ class MemoryStore {
         count++;
       }
     }
+    if (count > 0) {
+      this.saveToDisk();
+    }
     return { modifiedCount: count };
   }
 
@@ -264,6 +309,7 @@ class MemoryStore {
       updatedAt: new Date(),
     };
     this.subscriptions.push(newSub);
+    this.saveToDisk();
     return { ...newSub };
   }
 }
