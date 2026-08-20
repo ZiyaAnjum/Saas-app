@@ -1,0 +1,11 @@
+.dashboard-page { max-width: 600px; margin: 40px auto; padding: 0 20px; }
+.dashboard-page h1 { color: #111827; }
+.dashboard-card {
+  background: #fff; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-top: 16px;
+}
+.plan-name { font-size: 1.5rem; font-weight: 700; color: #4f46e5; }
+.dashboard-card button.danger {
+  background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 10px 16px; border-radius: 8px;
+  cursor: pointer; margin-top: 12px; font-weight: 600;
+}
+.link-cta { display: block; margin-top: 20px; color: #4f46e5; font-weight: 600; text-decoration: none; }
