@@ -10,7 +10,8 @@ exports.protect = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const jwtSecret = process.env.JWT_SECRET || 'saas_jwt_secret_ai_studio_2026';
+    const decoded = jwt.verify(token, jwtSecret);
 
     const user = await User.findById(decoded.id).populate('current_plan');
     if (!user) {

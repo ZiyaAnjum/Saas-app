@@ -19,9 +19,11 @@ exports.getDashboard = async (req, res) => {
     status: 'active',
   }).populate('plan_id');
 
+  const planName = activeSub?.plan_id?.name || 'Free (no active subscription)';
+
   res.status(200).json({
     message: `Welcome back, ${req.user.name}!`,
-    plan: activeSub ? activeSub.plan_id.name : 'Free (no active subscription)',
+    plan: planName,
   });
 };
 

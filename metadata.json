@@ -1,0 +1,6 @@
+{
+  "name": "SubHub - SaaS Subscription Management",
+  "description": "Subscription-based SaaS management platform with authentication, tiered subscription plans, and dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

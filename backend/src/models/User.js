@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const memoryStore = require('../config/memoryStore');
 
 const userSchema = new mongoose.Schema(
   {
@@ -23,4 +24,36 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-module.exports = mongoose.model('User', userSchema);
+const MongooseUser = mongoose.models.User || mongoose.model('User', userSchema);
+
+const UserProxy = {
+  findOne: function (query) {
+    if (mongoose.connection.readyState === 1) {
+      return MongooseUser.findOne(query);
+    }
+    if (query && query.email) {
+      return memoryStore.findUserByEmail(query.email);
+    }
+    return Promise.resolve(null);
+  },
+  findById: function (id) {
+    if (mongoose.connection.readyState === 1) {
+      return MongooseUser.findById(id);
+    }
+    return memoryStore.findUserById(id);
+  },
+  create: function (data) {
+    if (mongoose.connection.readyState === 1) {
+      return MongooseUser.create(data);
+    }
+    return memoryStore.createUser(data);
+  },
+  findByIdAndUpdate: function (id, update) {
+    if (mongoose.connection.readyState === 1) {
+      return MongooseUser.findByIdAndUpdate(id, update);
+    }
+    return memoryStore.updateUserById(id, update);
+  },
+};
+
+module.exports = UserProxy;
